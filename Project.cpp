@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <algorithm>
 #include "stemmer.h" // Include the Porter Stemming Algorithm header
 using namespace std;
 
@@ -68,9 +69,56 @@ int countEmotionWords(const vector<string> &words, const vector<string> &emotion
     }
     return count;
 }
+// Function to extract context around a character
+string extractContext(const string &text, const string &characterName, size_t range = 100) {
+    size_t pos = text.find(characterName);
+    if (pos != string::npos) {
+        size_t start = (pos >= range) ? pos - range : 0;
+        size_t end = min(pos + range, text.length());
+        return text.substr(start, end - start);
+    }
+    return ""; // Return empty string if character not found
+}
+int countOccurrences(const string &text, const string &characterName) {
+    size_t pos = 0;
+    int count = 0;
 
+    while ((pos = text.find(characterName, pos)) != string::npos) {
+        count++;
+        pos += characterName.length(); // Move past this occurrence
+    }
+
+    return count;
+}
+
+// Function to calculate percentages of emotions in a given context
+vector<double> calculateEmotionPercentages(const string &context, 
+                                           const vector<string> &stemmedangerWords,
+                                           const vector<string> &stemmedconfusionWords,
+                                           const vector<string> &stemmedHappyAliveWords,
+                                           const vector<string> &stemmedinspiredWords,
+                                           const vector<string> &stemmedrelaxedWords,
+                                           const vector<string> &stemmedsafeWords,
+                                           const vector<string> &stemmedurgencyWords) {
+                                            
+    vector<string> words = splitIntoWords(context, ".,!~/(){}\\-_$@#%^&*;:'\" \n\t");
+    int totalWords = words.size();
+
+    vector<double> percentages(7, 0.0); // To store emotion percentages
+
+    if (totalWords > 0) {
+        percentages[0] = (countEmotionWords(words, stemmedangerWords) / (double)totalWords) * 100;
+        percentages[1] = (countEmotionWords(words, stemmedconfusionWords) / (double)totalWords) * 100;
+        percentages[2] = (countEmotionWords(words, stemmedHappyAliveWords) / (double)totalWords) * 100;
+        percentages[3] = (countEmotionWords(words, stemmedinspiredWords) / (double)totalWords) * 100;
+        percentages[4] = (countEmotionWords(words, stemmedrelaxedWords) / (double)totalWords) * 100;
+        percentages[5] = (countEmotionWords(words, stemmedsafeWords) / (double)totalWords) * 100;
+        percentages[6] = (countEmotionWords(words, stemmedurgencyWords) / (double)totalWords) * 100;
+    }
+
+    return percentages;
+}
 int main() {
-
     // Define delimiters
     string delimiters = ".,!~/(){}\\-_$@#%^&*;:'\" \n\t";
 
@@ -80,6 +128,8 @@ int main() {
     // Characters
     string character1 = "Darcy";
     string character2 = "Wickham";
+    int count1 = countOccurrences(book1, character1);
+    int count2 = countOccurrences(book1, character2);
     // Split book1 into words
     vector<string> book1Words = splitIntoWords(book1, delimiters);
     vector<string> book2Words = splitIntoWords(book2, delimiters);
@@ -153,6 +203,26 @@ double book2inspiredPercentage = (static_cast<double>(inspiredCount2) / book2Wor
 double book2safePercentage = (static_cast<double>(safeCount2) / book2Words.size()) * 100;
 double book2urgencyPercentage = (static_cast<double>(urgencyCount2) / book2Words.size()) * 100;
 
+//idk
+string context1 = extractContext(book1, character1);
+    string context2 = extractContext(book1, character2);
+
+   vector<double> percentages1 = calculateEmotionPercentages(context1, stemmedAngerWords, stemmedConfusionWords, HappyAliveWords,
+                                                               stemmedinspiredWords, stemmedrelaxedWords, stemmedsafeWords, stemmedurgencyWords);
+    vector<double> percentages2 = calculateEmotionPercentages(context2, stemmedAngerWords, stemmedConfusionWords, HappyAliveWords,
+                                                               stemmedinspiredWords, stemmedrelaxedWords, stemmedsafeWords, stemmedurgencyWords);
+
+    // Emotion labels
+    vector<string> emotions;
+emotions.push_back("Anger");
+emotions.push_back("Confusion&Helplessness");
+emotions.push_back("Happy&Alive");
+emotions.push_back("Inspired");
+emotions.push_back("Relaxed&Peaceful");
+emotions.push_back("Safe&Satisfied");
+emotions.push_back("Urgency");
+
+
 
 // Display the percentage
  cout << left << setw(25) << "Emotion"
@@ -182,13 +252,13 @@ double book2urgencyPercentage = (static_cast<double>(urgencyCount2) / book2Words
     cout << left << setw(25) << "Urgency"
          << setw(25) << book1urgencyPercentage
          << setw(25) << book2urgencyPercentage << "\n";
+   
+
+    //Display result for charcters 
+       cout << "The character '" << character1 << "' appears " << count1 << " times in the book." << endl;
+    cout << "The character '" << character2 << "' appears " << count2 << " times in the book." << endl;
 
 
-    // result for character
-      cout << left << setw(25) << "Emotion"
-         << setw(15) << character1 + " (%)"
-         << setw(15) << character2 + " (%)"
-         << "\n";
 
     return 0; 
 }
