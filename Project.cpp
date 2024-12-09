@@ -52,7 +52,7 @@ vector<string> splitIntoWords(const string &text, const string &delimiters) {
 vector<string> stemWords(const vector<string> &words) {
     vector<string> stemmedWords;
     for (const string &word : words) {
-        stemmedWords.push_back(stemString(word)); // Use stemString from stemmer.h
+        stemmedWords.push_back(stemString(word)); 
     }
     return stemmedWords;
 }
@@ -90,34 +90,43 @@ int countOccurrences(const string &text, const string &characterName) {
 
     return count;
 }
+// Function to count emotion words around a character's name
+int countEmotionWordsAroundCharacter(
+    const string &text, 
+    const string &characterName, 
+    const vector<string> &emotionWords, 
+    size_t range = 100) 
+{
+    string delimiters = ".,!~/(){}\\-_$@#%^&*;:'\" \n\t";
+    // Tokenize the text
+    vector<string> words = splitIntoWords(text, delimiters);
+    vector<string> stemmedWords = stemWords(words);
 
-// Function to calculate percentages of emotions in a given context
-vector<double> calculateEmotionPercentages(const string &context, 
-                                           const vector<string> &stemmedangerWords,
-                                           const vector<string> &stemmedconfusionWords,
-                                           const vector<string> &stemmedHappyAliveWords,
-                                           const vector<string> &stemmedinspiredWords,
-                                           const vector<string> &stemmedrelaxedWords,
-                                           const vector<string> &stemmedsafeWords,
-                                           const vector<string> &stemmedurgencyWords) {
-                                            
-    vector<string> words = splitIntoWords(context, ".,!~/(){}\\-_$@#%^&*;:'\" \n\t");
-    int totalWords = words.size();
+    int emotionWordCount = 0;
+    size_t totalWords = words.size();
 
-    vector<double> percentages(7, 0.0); // To store emotion percentages
+    for (size_t i = 0; i < totalWords; ++i) {
+        if (words[i] == characterName) {
+            // Define the range
+            size_t start = (i >= range) ? i - range : 0;
+            size_t end = min(i + range, totalWords - 1);
 
-    if (totalWords > 0) {
-        percentages[0] = (countEmotionWords(words, stemmedangerWords) / (double)totalWords) * 100;
-        percentages[1] = (countEmotionWords(words, stemmedconfusionWords) / (double)totalWords) * 100;
-        percentages[2] = (countEmotionWords(words, stemmedHappyAliveWords) / (double)totalWords) * 100;
-        percentages[3] = (countEmotionWords(words, stemmedinspiredWords) / (double)totalWords) * 100;
-        percentages[4] = (countEmotionWords(words, stemmedrelaxedWords) / (double)totalWords) * 100;
-        percentages[5] = (countEmotionWords(words, stemmedsafeWords) / (double)totalWords) * 100;
-        percentages[6] = (countEmotionWords(words, stemmedurgencyWords) / (double)totalWords) * 100;
+            // Count emotion words in the range
+            for (size_t j = start; j <= end; ++j) {
+                for (const string &emotionWord : emotionWords) {
+                    if (stemmedWords[j] == emotionWord) {
+                        emotionWordCount++;
+                    }
+                }
+            }
+        }
     }
 
-    return percentages;
+    return emotionWordCount;
 }
+
+
+
 int main() {
     // Define delimiters
     string delimiters = ".,!~/(){}\\-_$@#%^&*;:'\" \n\t";
@@ -139,7 +148,7 @@ int main() {
     vector<string> stemmed2Words = stemWords(book2Words); //book2
 
 
-    // Read emotion words (anger-related)
+    // Read emotion words 
     vector<string> angerWords;
     readEmotionFile("./emotion_word_data/anger.txt", angerWords);
     vector<string> confusionWords;
@@ -203,26 +212,45 @@ double book2inspiredPercentage = (static_cast<double>(inspiredCount2) / book2Wor
 double book2safePercentage = (static_cast<double>(safeCount2) / book2Words.size()) * 100;
 double book2urgencyPercentage = (static_cast<double>(urgencyCount2) / book2Words.size()) * 100;
 
-//idk
-string context1 = extractContext(book1, character1);
-    string context2 = extractContext(book1, character2);
+// Count emotion words around specific characters
+int darcyHappyCount = countEmotionWordsAroundCharacter(book1, character1, stemmedHappyWords, 100);
+int darcyAngryCount = countEmotionWordsAroundCharacter(book1, character1, stemmedAngerWords, 100);
+int darcyConfusionCount = countEmotionWordsAroundCharacter(book1, character1, stemmedConfusionWords, 100);
+int darcyinspiredCount = countEmotionWordsAroundCharacter(book1, character1, stemmedinspiredWords, 100);
+int darcyrelaxedCount = countEmotionWordsAroundCharacter(book1, character1, stemmedrelaxedWords, 100);
+int darcysafeCount = countEmotionWordsAroundCharacter(book1, character1, stemmedsafeWords, 100);
+int darcyurgencyCount = countEmotionWordsAroundCharacter(book1, character1, stemmedurgencyWords, 100);
+// WIckham
+int wickhamHappyCount = countEmotionWordsAroundCharacter(book1, character2, stemmedHappyWords, 100);
+int wickhamAngryCount = countEmotionWordsAroundCharacter(book1, character2, stemmedAngerWords, 100);
+int wickhamConfusionCount = countEmotionWordsAroundCharacter(book1, character2, stemmedConfusionWords, 100);
+int wickhaminspiredCount = countEmotionWordsAroundCharacter(book1, character2, stemmedinspiredWords, 100);
+int wickhamrelaxedCount = countEmotionWordsAroundCharacter(book1, character2, stemmedrelaxedWords, 100);
+int wickhamsafeCount = countEmotionWordsAroundCharacter(book1, character2, stemmedsafeWords, 100);
+int wickhamurgencyCount = countEmotionWordsAroundCharacter(book1, character2, stemmedurgencyWords, 100);
 
-   vector<double> percentages1 = calculateEmotionPercentages(context1, stemmedAngerWords, stemmedConfusionWords, HappyAliveWords,
-                                                               stemmedinspiredWords, stemmedrelaxedWords, stemmedsafeWords, stemmedurgencyWords);
-    vector<double> percentages2 = calculateEmotionPercentages(context2, stemmedAngerWords, stemmedConfusionWords, HappyAliveWords,
-                                                               stemmedinspiredWords, stemmedrelaxedWords, stemmedsafeWords, stemmedurgencyWords);
+// Calculate Percentage for Character1
+double DarcyAngryPercentage = (static_cast<double>(darcyAngryCount) / (count1 * 200)) * 100;
+double DarcyHappyPercentage = (static_cast<double>(darcyHappyCount) / (count1 * 200)) * 100;
+double DarcyrelaxedPercentage = (static_cast<double>(darcyrelaxedCount) / (count1 * 200)) * 100;
+double DarcyConfusedHappyPercentage = (static_cast<double>(darcyConfusionCount) / (count1 * 200)) * 100;
+double DarcyInspiredPercentage = (static_cast<double>(darcyinspiredCount) / (count1 * 200)) * 100;
+double DarcySafePercentage = (static_cast<double>(darcysafeCount) / (count1 * 200)) * 100;
+double DarcyUrgencyPercentage = (static_cast<double>(darcyurgencyCount) / (count1 * 200)) * 100;
+// Calculate Percentafe for Character2
+double WickHamAngryPercentage = (static_cast<double>(wickhamAngryCount) / (count1 * 200)) * 100;
+double WickhamHappyPercentage = (static_cast<double>(wickhamHappyCount) / (count1 * 200)) * 100;
+double WickhamrelaxedPercentage = (static_cast<double>(wickhamrelaxedCount) / (count1 * 200)) * 100;
+double WickhamConfusedPercentage = (static_cast<double>(wickhamConfusionCount) / (count1 * 200)) * 100;
+double WickhamInspiredPercentage = (static_cast<double>(wickhaminspiredCount) / (count1 * 200)) * 100;
+double WickhamSafePercentage = (static_cast<double>(wickhamsafeCount) / (count1 * 200)) * 100;
+double WickhamUrgencyPercentage = (static_cast<double>(wickhamurgencyCount) / (count1 * 200)) * 100;
 
-    // Emotion labels
-    vector<string> emotions;
-emotions.push_back("Anger");
-emotions.push_back("Confusion&Helplessness");
-emotions.push_back("Happy&Alive");
-emotions.push_back("Inspired");
-emotions.push_back("Relaxed&Peaceful");
-emotions.push_back("Safe&Satisfied");
-emotions.push_back("Urgency");
+// Display results
 
-
+cout << "Happywords around " << character1 << ": " << darcyHappyCount << endl;
+cout << "Anger around " << DarcyAngryPercentage << ": " << darcyAngryCount << endl;
+cout << "Happy around " << DarcyHappyPercentage << ": " << darcyHappyCount << endl;
 
 // Display the percentage
  cout << left << setw(25) << "Emotion"
@@ -251,7 +279,37 @@ emotions.push_back("Urgency");
 
     cout << left << setw(25) << "Urgency"
          << setw(25) << book1urgencyPercentage
-         << setw(25) << book2urgencyPercentage << "\n";
+         << setw(25) << book2urgencyPercentage << "\n" << endl;
+    
+
+    // Display the Character percentage
+ cout << left << setw(25) << "Emotion"
+         << setw(25) << "Darcy (%)"
+         << setw(25) << "Wickham (%)"
+         << "\n";
+     cout << left << setw(25) << "Anger"
+         << setw(25) << setprecision(2) <<  DarcyAngryPercentage
+         << setw(25) << setprecision(2) << WickHamAngryPercentage << "\n";
+
+    cout << left << setw(25) << "Confusion"
+         << setw(25) << DarcyConfusedHappyPercentage
+         << setw(25) << WickhamConfusedPercentage << "\n";
+    cout << left << setw(25) << "Happy"
+         << setw(25) << DarcyHappyPercentage
+         << setw(25) << WickhamHappyPercentage << "\n";
+     cout << left << setw(25) << "Inspired"
+         << setw(25) << DarcyInspiredPercentage
+         << setw(25) << WickhamInspiredPercentage << "\n";
+    cout << left << setw(25) << "Relax"
+         << setw(25) << DarcyrelaxedPercentage
+         << setw(25) << WickhamrelaxedPercentage << "\n";
+    cout << left << setw(25) << "Safe"
+         << setw(25) << DarcySafePercentage
+         << setw(25) << WickhamSafePercentage << "\n";
+
+    cout << left << setw(25) << "Urgency"
+         << setw(25) << DarcyUrgencyPercentage
+         << setw(25) << WickhamUrgencyPercentage << "\n";
    
 
     //Display result for charcters 
